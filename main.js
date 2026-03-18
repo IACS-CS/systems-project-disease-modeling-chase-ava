@@ -6,7 +6,6 @@
 /* AI Use: describe what you asked, what it gave you, and what you changed. */
 /* Mark AI-generated sections: // AI-generated: ... // end AI-generated   */
 
-
 import "./style.css";
 import { GameInterface } from "simple-canvas-library";
 
@@ -17,6 +16,8 @@ let gi = new GameInterface();
 let infectionRate = 0.5;
 let population = [];
 let introvertPercentage = 0.3;
+let extrovertedNumber = 3;
+let contacts = [];
 // let roundCount = 0;
 // let infectedPerRound = [1];
 
@@ -44,8 +45,6 @@ function percentToPixels(x, y, bounds) {
   };
 }
 
-
-
 /* --- DRAWING: SIMULATION ----------------------------------------------
  *
  * Draw your agents inside the simulation area.
@@ -68,61 +67,89 @@ function drawSimulation(ctx, bounds, elapsed) {
   );
 
   // Example: utility function to draw a person as a circle
+  // draw a person using person variables in population array
+  // draw normal people as gray
+  // draw introverted people as blue
+  // draw infected people as red
   function drawPerson(person) {
     let { x, y } = percentToPixels(person.x, person.y, bounds);
-    ctx.fillStyle = 'gray';
+    ctx.beginPath();
+    ctx.fillStyle = "gray";
+    let radius = 5;
     if (person.infected) {
-      ctx.fillstyle = 'red'
+      ctx.fillStyle = "red";
     }
     if (person.introverted) {
-      ctx.strokeStyle = 'blue'
+      ctx.strokeStyle = "blue";
     } else {
-      ctx.strokeStyle = 'orange'
+      ctx.strokeStyle = "orange";
     }
     ctx.beginPath();
-    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
   }
-  function drawPersonInfected(px, py, color) {
+  /*   function drawPersonInfected(px, py, color) {
     let { x, y } = percentToPixels(px, py, bounds);
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
       ctx.fill();
     }
+*/
 
   // Now we draw some people...
   // (in your real code you'll replace this with a loop)
   // like...
   // for (let person of population) {...}
   for (let person of population) {
-    drawPerson(person.x, person.y);
-    if (person.infected = true) {
-      drawPersonInfected(person.x, person.y)
-    }
+    drawPerson(person);
   }
 
   // YOUR CODE HERE
 }
 function generatePopulation(size) {
+  // generate array of person values, and each person includes an x-value, a y-value,
+  // an introvert-value, a paired-value, and a pairseed-value.
   population = [];
-  let introvertSize = introvertPercentage * size
+  let introvertSize = Math.floor(introvertPercentage * size);
   for (let i = 0; i < size; i++) {
-    let introverted = false;
-    if (i > introvertSize) {
-      introverted = true;
-    }
+    let introverted = i < introvertSize;
     population.push({
       x: Math.random() * 100,
       y: Math.random() * 100,
-      isPaired : false,
-      pairseed : Math.random(),
+      introverted: introverted,
+      paired: false,
+      pairseed: Math.random(),
     });
   }
-  populaton[0].infected = true;
+  population[0].infected = true;
 }
-// go through each person
-// check how many people they will interact with per round
+
+/* PERSON PAIRING
+  for each person:
+    check if they are introverted, and if they are than make them only talk to one other person
+     if they are extroverted, then choose a number of people to talk to based on a slider control
+*/
+function personPairing() {
+  contacts = [];
+  for (let person of population) {
+    if ((person.introverted = true)) {
+      let index = Math.floor(Math.random() * population.length);
+      let person2 = population[index];
+      contacts.push([person, person2]);
+      person.paired = true;
+    } else if ((person.introverted = false)) {
+      for (let i = 0; i < extrovertedNumber; i++) {
+        let index = Math.floor(Math.random() * population.length);
+        let person2 = population[index];
+        contacts.push([person, person2]);
+        person.paired = true;
+      }
+    }
+  }
+}
+
 
 /* --- DRAWING: GRAPH ---------------------------------------------------
  *
