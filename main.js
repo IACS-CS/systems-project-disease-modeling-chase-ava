@@ -97,6 +97,25 @@ function drawSimulation(ctx, bounds, elapsed) {
       ctx.fill();
     }
 */
+//Ai generated: This code uses lines to represent who is paired with who
+
+  // Draw pairings as lines first
+  ctx.strokeStyle = "lightgreen";
+  ctx.lineWidth = 1;
+  for (let pair of contacts) {
+    let personA = pair[0];
+    let personB = pair[1];
+    if (!personA || !personB) {
+      continue;
+    }
+    let pA = percentToPixels(personA.x, personA.y, bounds);
+    let pB = percentToPixels(personB.x, personB.y, bounds);
+    ctx.beginPath();
+    ctx.moveTo(pA.x, pA.y);
+    ctx.lineTo(pB.x, pB.y);
+    ctx.stroke();
+  }
+//end of Ai code
 
   // Now we draw some people...
   // (in your real code you'll replace this with a loop)
@@ -126,31 +145,77 @@ function generatePopulation(size) {
   population[0].infected = true;
 }
 
+// start with an initial population
+generatePopulation(100);
+
 /* PERSON PAIRING
   for each person:
-    check if they are introverted, and if they are than make them only talk to one other person
-     if they are extroverted, then choose a number of people to talk to based on a slider control
+    check if they are introverted, and if they are then make them only talk to one other person
+    if they are extroverted, then choose a number of people to talk to based on a slider control
 */
+//Ai generated/edited: This function pairs people in the population based on their introversion/extroversion.
+// Introverted people are paired with one other person who is not already paired, while extroverted people can be paired with 
+// a number of people based on the extrovertedNumber variable.
+// The function also resets the pairing state for each round and updates the contacts array with the new pairings.
+// If an introverted person cannot find an unmatched partner, they will be paired with a random person from the population.
 function personPairing() {
   contacts = [];
-  for (let person of population) {
-    if ((person.introverted = true)) {
-      let index = Math.floor(Math.random() * population.length);
-      let person2 = population[index];
-      contacts.push([person, person2]);
-      person.paired = true;
-    } else if ((person.introverted = false)) {
-      for (let i = 0; i < extrovertedNumber; i++) {
-        let index = Math.floor(Math.random() * population.length);
-        let person2 = population[index];
-        contacts.push([person, person2]);
+
+  // reset pairing state for each round
+  for (let i = 0; i < population.length; i++) {
+    population[i].paired = false;
+  }
+
+  for (let i = 0; i < population.length; i++) {
+    let person = population[i];
+
+    if (person.introverted) {
+      // introverts get exactly one pair with someone not already paired, if possible
+      let foundPartner = false;
+      for (let j = 0; j < population.length; j++) {
+        if (i === j) {
+          continue;
+        }
+        let candidate = population[j];
+        if (!candidate.paired) {
+          contacts.push([person, candidate]);
+          person.paired = true;
+          candidate.paired = true;
+          foundPartner = true;
+          break;
+        }
+      }
+      if (!foundPartner) {
+        // If no unmatched partner remains, we still can pair with a random person.
+        let randomIndex = Math.floor(Math.random() * population.length);
+        if (randomIndex !== i) {
+          contacts.push([person, population[randomIndex]]);
+          person.paired = true;
+        }
+      }
+    } else {
+      // extroverts can pair with extrovertedNumber people
+      let pairCount = 0;
+      for (
+        let k = 0;
+        k < population.length && pairCount < extrovertedNumber;
+        k++
+      ) {
+        if (k === i) {
+          continue;
+        }
+        let candidate = population[k];
+        // extroverts can pair with anyone, including already paired people
+        contacts.push([person, candidate]);
+        pairCount++;
+      }
+      if (pairCount > 0) {
         person.paired = true;
       }
     }
   }
 }
-
-
+//end of Ai code
 /* --- DRAWING: GRAPH ---------------------------------------------------
  *
  * Draw a bar chart in the graph area.
@@ -247,7 +312,8 @@ let topBar = gi.addTopBar();
 topBar.addButton({
   text: "Next Round",
   onclick: function () {
-    window.alert("Replace me: call your simulation update function");
+    personPairing();
+    // TODO: add your update logic here (e.g. updateInfections())
   },
 });
 
@@ -262,6 +328,18 @@ topBar.addSlider({
   },
 });
 
+//Ai generated
+topBar.addSlider({
+  label: "Extrovert Pair Count",
+  min: 1,
+  max: 10,
+  value: extrovertedNumber,
+  oninput: function (value) {
+    extrovertedNumber = value;
+  },
+});
+//end of Ai code
+
 topBar.addSlider({
   label: "Initial Population",
   min: 16,
@@ -274,7 +352,7 @@ topBar.addSlider({
 topBar.addButton({
   text: "Reset",
   onclick: function () {
-    window.alert("Replace me: call your generatePopulation function");
+    generatePopulation(100);
   },
 });
 
