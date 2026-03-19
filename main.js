@@ -251,11 +251,21 @@ function updateInfections() {
   }
 }
 function calculateRoundData() {
-  if (person.infected === true) {
-    if (person.introverted === true) {
-      roundData.push(introvertedInfected)
+  let introvertedInfected = 0;
+  let extrovertedInfected = 0;
+  for (let person of population) {
+    if (person.infected === true) {
+      if (person.introverted === true) {
+        introvertedInfected++
+      } else{
+        extrovertedInfected++
+      }
     }
   }
+  roundData.push({
+    introvertedInfected,
+    extrovertedInfected
+  })
 }
 // end AI infections code
 /* --- DRAWING: GRAPH ---------------------------------------------------
