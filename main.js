@@ -19,6 +19,7 @@ let introvertPercentage = 0.3;
 let extrovertedNumber = 3;
 let contacts = [];
 let roundData = [];
+let graphData = [0, 0];
 // let roundCount = 0;
 // let infectedPerRound = [1];
 
@@ -98,7 +99,7 @@ function drawSimulation(ctx, bounds, elapsed) {
       ctx.fill();
     }
 */
-//Ai generated: This code uses lines to represent who is paired with who
+  //Ai generated: This code uses lines to represent who is paired with who
 
   // Draw pairings as lines first
   ctx.strokeStyle = "white";
@@ -116,7 +117,7 @@ function drawSimulation(ctx, bounds, elapsed) {
     ctx.lineTo(pB.x, pB.y);
     ctx.stroke();
   }
-//end of Ai code
+  //end of Ai code
 
   // Now we draw some people...
   // (in your real code you'll replace this with a loop)
@@ -151,31 +152,15 @@ generatePopulation(100);
 
 /* PERSON PAIRING
   for each person:
-    check if they are introverted, and if they are then make them not seek out any pairing partner
-    if they are extroverted, then choose a number of people to talk to based on a slider control */
-
-function personPairing() {
-  contacts = [];
-
-  for (let person of population) {
-    if (!person.introverted) {
-      for (let i=0; i<extrovertedNumber; i++) {
-        let randomIndex = Math.floor (Math.random() * population.length)
-        let randomPerson = population[randomIndex]
-        if (randomPerson !== person)
-          contacts.push([person, randomPerson])
-      }
-    }
-  }
-
-}
-
-    //Ai generated/edited: This function pairs people in the population based on their introversion/extroversion.
-// Introverted people are paired with one other person who is not already paired, while extroverted people can be paired with 
+    check if they are introverted, and if they are then make them only talk to one other person
+    if they are extroverted, then choose a number of people to talk to based on a slider control
+*/
+//Ai generated/edited: This function pairs people in the population based on their introversion/extroversion.
+// Introverted people are paired with one other person who is not already paired, while extroverted people can be paired with
 // a number of people based on the extrovertedNumber variable.
 // The function also resets the pairing state for each round and updates the contacts array with the new pairings.
 // If an introverted person cannot find an unmatched partner, they will be paired with a random person from the population.
-function personPairingOld() {
+function personPairing() {
   contacts = [];
 
   // reset pairing state for each round
@@ -241,7 +226,6 @@ function updateInfections() {
     if (personA.infected && !personB.infected) {
       if (Math.random() < infectionRate) {
         personB.infected = true;
-
       }
     } else if (!personA.infected && personB.infected) {
       if (Math.random() < infectionRate) {
@@ -253,19 +237,36 @@ function updateInfections() {
 function calculateRoundData() {
   let introvertedInfected = 0;
   let extrovertedInfected = 0;
+  let totalIntroverts = 0;
+  let totalExtroverts = 0;
+
   for (let person of population) {
-    if (person.infected === true) {
-      if (person.introverted === true) {
-        introvertedInfected++
-      } else{
-        extrovertedInfected++
+    if (person.introverted) {
+      totalIntroverts++;
+      if (person.infected) {
+        introvertedInfected++;
+      }
+    } else {
+      totalExtroverts++;
+      if (person.infected) {
+        extrovertedInfected++;
       }
     }
   }
+
+  let introvertedInfectedPct =
+    totalIntroverts > 0 ? (introvertedInfected / totalIntroverts) * 100 : 0;
+  let extrovertedInfectedPct =
+    totalExtroverts > 0 ? (extrovertedInfected / totalExtroverts) * 100 : 0;
+
+  graphData = [introvertedInfectedPct, extrovertedInfectedPct];
+
   roundData.push({
     introvertedInfected,
-    extrovertedInfected
-  })
+    extrovertedInfected,
+    introvertedInfectedPct,
+    extrovertedInfectedPct,
+  });
 }
 // end AI infections code
 /* --- DRAWING: GRAPH ---------------------------------------------------
@@ -295,8 +296,32 @@ function drawGraph(data, dataMax, ctx, bounds) {
   ctx.lineTo(bottomRight.x, bottomRight.y);
   ctx.stroke();
 
-  // YOUR CODE HERE
-  // Hint: let pct = (data[i] / dataMax) * 100;
+  // Bars for infected introverts/extroverts (percent)
+  let barCount = data.length;
+  let regionWidth = bounds.right - bounds.left;
+  let regionHeight = bounds.bottom - bounds.top;
+  let barSpacing = regionWidth / barCount;
+  let barWidth = barSpacing * 0.5;
+
+  for (let i = 0; i < data.length; i++) {
+    let pct = data[i];
+    let barHeight = (pct / dataMax) * regionHeight;
+    let x = bounds.left + i * barSpacing + (barSpacing - barWidth) / 2;
+    let y = bounds.bottom - barHeight;
+
+    ctx.fillStyle = i === 0 ? "blue" : "orange";
+    ctx.fillRect(x, y, barWidth, barHeight);
+
+    ctx.fillStyle = "white";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${Math.round(pct)}%`, x + barWidth / 2, y - 6);
+  }
+
+  ctx.fillStyle = "white";
+  ctx.textAlign = "left";
+  ctx.fillText("Introvert infected %", bounds.left, bounds.bottom + 18);
+  ctx.fillText("Extrovert infected %", bounds.left + 150, bounds.bottom + 18);
 }
 
 /* --- DRAWING: HUD -----------------------------------------------------
@@ -340,7 +365,7 @@ gi.addDrawing(function ({ ctx, width, height }) {
     left: 50,
     right: width - 50,
   };
-  drawGraph([], 1, ctx, graphBounds); // <- replace [] and 1 with your real data
+  drawGraph(graphData, 100, ctx, graphBounds); // <- replace [] and 1 with your real data
 });
 
 gi.addDrawing(function ({ ctx, width, height }) {
@@ -366,7 +391,7 @@ topBar.addButton({
   onclick: function () {
     personPairing();
     updateInfections();
-    // TODO: add your update logic here (e.g. updateInfections())
+    calculateRoundData();
   },
 });
 
@@ -406,8 +431,9 @@ topBar.addButton({
   text: "Reset",
   onclick: function () {
     contacts = [];
+    roundData = [];
+    graphData = [0, 0];
     generatePopulation(100);
-
   },
 });
 
