@@ -1336,7 +1336,7 @@ gi.addDrawing(function ({ ctx, width, height }) {
     left: 50,
     right: width - 50,
   };
-  drawGraph(graphData, 100, ctx, graphBounds); // <- replace [] and 1 with your real data
+  drawGraph(graphData, 100, ctx, graphBounds);
 });
 
 gi.addDrawing(function ({ ctx, width, height }) {
@@ -1411,4 +1411,4 @@ topBar.addButton({
 // TODO: add sliders or inputs for your own parameters here
 
 gi.run();
-//# sourceMappingURL=index-5ba023af.js.map
+//# sourceMappingURL=index-d8a0183b.js.map
