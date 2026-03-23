@@ -1,9 +1,9 @@
 /* Main game file: main.js */
-/* Game: [Your Game Name Here] */
-/* Authors: [Your Name(s) Here] */
-/* Description: [Short description of your game here] */
+/* Simulation: Disease Simulation w/ Personality Types */
+/* Authors: Avalynn + Chase */
+/* Description: Simulates a disease spreading, with the added variable of different personality types */
 /* Citations: [List any resources, libraries, tutorials, etc you used here] */
-/* AI Use: describe what you asked, what it gave you, and what you changed. */
+/* AI Use: Used AI to help generate certain aspects of code, such as graph logic.  */
 /* Mark AI-generated sections: // AI-generated: ... // end AI-generated   */
 
 import "./style.css";
@@ -365,7 +365,7 @@ gi.addDrawing(function ({ ctx, width, height }) {
     left: 50,
     right: width - 50,
   };
-  drawGraph(graphData, 100, ctx, graphBounds); // <- replace [] and 1 with your real data
+  drawGraph(graphData, 100, ctx, graphBounds);
 });
 
 gi.addDrawing(function ({ ctx, width, height }) {
